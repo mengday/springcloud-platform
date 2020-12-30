@@ -1,0 +1,35 @@
+server:
+  port: 8001
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/mengday/document.git
+          username: mengday
+          password: mengday@123
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+
+eureka:
+  instance:
+    prefer-ip-address: true # 使用IP地址注册
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:9000/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, bus-refresh
+
+logging:
+  level:
+    org.springframework.cloud.bus: debug

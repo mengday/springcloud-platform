@@ -1,0 +1,61 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-zuul
+  zipkin:
+    sender:
+      type: rabbit
+  sleuth:
+    sampler:
+      probability: 1 # 采样比 0 - 1，1表示采样所有日志，0.1表示采样10%的日志
+  rabbitmq:
+    host: localhost
+    port: 5672
+    listener: # 重试策略
+      direct:
+        retry:
+          enabled: true
+      simple:
+        retry:
+          enabled: true
+
+eureka:
+  instance:
+    prefer-ip-address: true # 使用IP地址注册
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    lease-renewal-interval-in-seconds: 5 # 向Eureka发送心跳的间隔时间
+    lease-expiration-duration-in-seconds: 10 # 多少秒之后Eureka没有收到微服务的心跳认为服务已经宕机
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:9000/eureka
+
+zuul:
+  routes:
+    order-service: /order-service/**   # 微服务名称：匹配路径
+  host:
+    connect-timeout-millis: 60000
+    socket-timeout-millis: 60000
+
+ribbon:
+  ConnectTimeout: 10000
+  ReadTimeout: 10000
+  eager-load:
+    enabled: true
+  eureka:
+    enabled: true
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 6000
+
+logging:
+  level:
+    root: info
+    org.springframework.web.servlet.DispatcherServlet: debug
+    org.springframework.cloud.sleuth: debug

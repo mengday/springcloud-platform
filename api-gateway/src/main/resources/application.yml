@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  redis:
+    host: localhost
+    pool: 6379
+    database: 0
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: lb://order-service # lb://微服务名称
+          predicates:
+            - Path=/orderService/**  # 注意Path和Zuul中的配置不一样，这里的Path前缀会作为子路径路由到微服务的, 如果想让前缀生效需要使用RewritePath进行重写
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: '#{@pathKeyResolver}'
+                redis-rate-limiter.replenishRate: 1 # 令牌桶每秒填充平均速率
+                redis-rate-limiter.burstCapacity: 1 # 令牌桶存的个数
+            - RewritePath=/orderService/(?<segment>.*), /$\{segment} # 路径重写，让前缀不加入到子路径路由到微服务中
+      discovery:
+        locator:
+          enabled: true # 开启根据微服务名称自动转发，微服务名称作为路由前缀，但不参与到具体的路由路径中
+          lower-case-service-id: true # 微服务名称小写
+eureka:
+  instance:
+    prefer-ip-address: true # 使用IP地址注册
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:9000/eureka
